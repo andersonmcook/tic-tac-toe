@@ -10,6 +10,9 @@ function startGame () {
   array = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   board.addEventListener('click', makeMove)
   message.innerHTML = "x starts"
+  for (let i = 0; i < array.length; i++) {
+    document.getElementById(`${i}`).innerHTML = '&nbsp;'
+  }
 }
 
 // check to see if a winning move has been made
@@ -27,6 +30,7 @@ function winCheck (array) {
 
 // make a move
 function makeMove () {
+  console.log("counter", counter)
   let turn
 // check whose move it is based on the counter and tell them
   counter % 2 === 0 ? (mark = 'x', turn = 'o') : (mark = 'o', turn ='x')
@@ -43,6 +47,9 @@ function makeMove () {
     array[event.target.id] = mark
 // check win conditions and end or increment counter
     winCheck(array) === true ? endGame() : counter++
+    if (winCheck(array) === false && counter === 9) {
+      tieGame()
+    }
   }
 }
 
@@ -50,6 +57,12 @@ function makeMove () {
 function endGame() {
   counter % 2 === 0 ? mark = 'x' : mark = 'o'
   message.innerHTML = `${mark} won!`
+  board.removeEventListener('click', makeMove)
+}
+
+// tie
+function tieGame () {
+  message.innerHTML = `It's a tie!`
   board.removeEventListener('click', makeMove)
 }
 
