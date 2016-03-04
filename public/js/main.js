@@ -1,18 +1,49 @@
 // ;(function () {
 //   console.log('hey')
 
+const ws = io.connect()
+
+ws.on('connect', () => {
+  console.log('browser socket connected')
+})
+
 let array = []
-let counter = 0
-let mark = 'x'
+// let counter
+// let mark = 'x'
+
+ws.on('receiveStartGame', info => {
+  if(info.started) startGame(false)
+  console.log("receivedStartGame", info)
+  // ws.emit('startedGame')
+})
+
+ws.on('moved', info => {
+  console.log('moved info', info)
+  info.counter = info.counter || 0
+  info.array = info.array || array
+  makeMove(info)
+})
+
 
 // sets up game and add event listener
-function startGame () {
-  array = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  board.addEventListener('click', makeMove)
-  message.innerHTML = "x starts"
-  for (let i = 0; i < array.length; i++) {
-    document.getElementById(`${i}`).innerHTML = '&nbsp;'
-  }
+function startGame (bool) {
+  console.log("bool", bool)
+  counter = 0
+  // if (bool) {
+  // set array to something that won't interfere with x or o
+    array = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  // add event listener to the board that runs makeMove
+    board.addEventListener('click', makeMove)
+  // beginning game message
+    message.innerHTML = "x starts"
+  // reset board visually
+    for (let i = 0; i < array.length; i++) {
+      document.getElementById(`${i}`).innerHTML = '&nbsp;'
+    }
+    if (bool) {
+      ws.emit('startGame')
+    }
+  // }
 }
 
 // check to see if a winning move has been made
@@ -29,9 +60,19 @@ function winCheck (array) {
 }
 
 // make a move
-function makeMove () {
-  console.log("counter", counter)
+function makeMove (info) {
+  // console.log("counter", counter)
+  // info is a click event right now
+  info.counter = info.counter || 0
+  info.array = info.array || array
+  // console.log("makeMove", info)
+  for(let i = 0; i < info.array.length; i++) {
+    info.array[i] === 'x' || info.array[i] === 'o' ? document.getElementById(i).innerHTML = info.array[i] : null
+  }
+  let mark
   let turn
+  counter = info.counter || 0
+  array = info.array || array
 // check whose move it is based on the counter and tell them
   counter % 2 === 0 ? (mark = 'x', turn = 'o') : (mark = 'o', turn ='x')
   message.innerHTML = `${turn}'s turn`
@@ -50,6 +91,7 @@ function makeMove () {
     if (winCheck(array) === false && counter === 9) {
       tieGame()
     }
+    ws.emit('moved', {counter: counter, array: array})
   }
 }
 
@@ -77,7 +119,7 @@ form.addEventListener('submit', () => {
   // const chat = {name: name.value, text: text.value}
   console.log('new game')
   // ws.emit('sendChat', chat) // before because displayChat resets text.value
-  startGame()
+  startGame(true)
   event.preventDefault()
 })
 
